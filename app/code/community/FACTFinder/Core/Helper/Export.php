@@ -28,6 +28,7 @@ class FACTFinder_Core_Helper_Export extends Mage_Core_Helper_Abstract
     const EXPORT_IMAGE_TYPE    = 'suggest_image_type';
     const EXPORT_URLS_IMAGES   = 'urls';
     const OUT_OF_STOCK_PRODUCTS = 'out_of_stock_products';
+    const VALIDATION_DISABLED  = 'disabled_validation';
 
     /**
      * @var int
@@ -227,20 +228,27 @@ class FACTFinder_Core_Helper_Export extends Mage_Core_Helper_Abstract
     public function archiveFiles($storeId)
     {
         $dir = $this->getExportDirectory();
-
         $archiveName = sprintf(self::ARCHIVE_PATTERN, $storeId);
+        $archivePath = $dir . DS . $archiveName;
 
         $zip = new ZipArchive();
-        $zip->open($dir . DS . $archiveName, ZIPARCHIVE::CREATE | ZIPARCHIVE::OVERWRITE);
+        $zip->open($archivePath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
         foreach ($this->getExportTypes() as $type) {
-            $model = Mage::getModel('factfinder/export_' . $type);
+            $model = Mage::getModel('factfinder/export_type_' . $type);
             $filename = $model->getFilenameForStore($storeId);
+
+            if ($this->isValidationEnabled($storeId) && !$this->_validateFile($model, $dir, $filename)) {
+                $zip->close();
+                @unlink($archivePath);
+                break;
+            }
+
             $zip->addFile($dir . DS . $filename, $filename);
         }
 
         $zip->close();
 
-        return $dir . DS . $archiveName;
+        return $archivePath;
     }
 
 
@@ -285,7 +293,8 @@ class FACTFinder_Core_Helper_Export extends Mage_Core_Helper_Abstract
     public function getExportImageWidth($storeId = 0)
     {
         $width = $this->getExportConfigValue(self::EXPORT_IMAGE_SIZE, $storeId);
-        $width = array_shift(explode('x', $width));
+        $width = explode('x', $width);
+        $width = array_shift($width);
 
         return $width;
     }
@@ -301,7 +310,8 @@ class FACTFinder_Core_Helper_Export extends Mage_Core_Helper_Abstract
     public function getExportImageHeight($storeId = 0)
     {
         $height = $this->getExportConfigValue(self::EXPORT_IMAGE_SIZE, $storeId);
-        $height = array_pop(explode('x', $height));
+        $height = explode('x', $height);
+        $height = array_pop($height);
 
         return $height ? $height : $this->getExportImageWidth();
     }
@@ -321,13 +331,13 @@ class FACTFinder_Core_Helper_Export extends Mage_Core_Helper_Abstract
 
 
     /**
-     * Check if images and deeplinks should be exported
+     * Check if images should be exported
      *
      * @param int $storeId
      *
      * @return null|string
      */
-    public function shouldExportImagesAndDeeplinks($storeId = 0)
+    public function shouldExportImages($storeId = 0)
     {
         return $this->getExportConfigValue(self::EXPORT_URLS_IMAGES, $storeId);
     }
@@ -343,6 +353,43 @@ class FACTFinder_Core_Helper_Export extends Mage_Core_Helper_Abstract
     public function shouldExportOutOfStock($storeId = 0)
     {
         return $this->getExportConfigValue(self::OUT_OF_STOCK_PRODUCTS, $storeId);
+    }
+
+
+    /**
+     * Check if file is valid
+     *
+     * @param FACTFinder_Core_Model_Export_Type_Interface $model
+     * @param string $dir
+     * @param string $filename
+     *
+     * @return bool
+     */
+    protected function _validateFile($model, $dir, $filename)
+    {
+        if (!defined($model::FILE_VALIDATOR)) {
+            return true;
+        }
+
+        /** @var FACTFinder_Core_Model_File $file */
+        $file = Mage::getModel('factfinder/file');
+        $file->open($dir, $filename);
+        $file->setValidator(Mage::getModel($model::FILE_VALIDATOR));
+
+        return $file->isValid();
+    }
+
+
+    /**
+     * Check if file validation for store is enabled
+     *
+     * @param int $storeId
+     *
+     * @return null|string
+     */
+    public function isValidationEnabled($storeId = 0)
+    {
+        return !$this->getExportConfigValue(self::VALIDATION_DISABLED, $storeId);
     }
 
 
