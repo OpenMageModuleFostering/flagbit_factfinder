@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FACTFinder_Tracking
+ *
+ * @category Mage
+ * @package FACTFinder_Tracking
+ * @author Flagbit Magento Team <magento@flagbit.de>
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG
+ * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
+ * @link http://www.flagbit.de
+ *
+ */
+ -->
+<layout>
+    <factfinder_clicktracking_enabled>
+        <reference name="head">
+            <action method="addJs"><script>factfinder/tracking.js</script></action>
+        </reference>
+        <reference name="content">
+            <block type="factfinder_tracking/click" name="factfinder.tracking.click" template="factfinder/tracking/click.phtml"/>
+        </reference>
+    </factfinder_clicktracking_enabled>
+
+    <factfinder_recommendation_tracking>
+        <reference name="head">
+            <action method="addJs"><script>factfinder/tracking.js</script></action>
+        </reference>
+        <reference name="content">
+            <block type="factfinder_tracking/recommendation" name="factfinder.tracking.recommendation" template="factfinder/tracking/recommendation.phtml"/>
+        </reference>
+    </factfinder_recommendation_tracking>
+</layout>

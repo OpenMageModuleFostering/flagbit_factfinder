@@ -1,13 +1,13 @@
 {
     "name": "OpenMageModuleFostering/Flagbit_Factfinder",
     "type": "magento-module",
-    "license": "GPL",
+    "license": "MIT",
     "homepage": "",
-    "description": "Integrates the FACT-Finder for improved product search functionality.",
+    "description": "4.1.10 Release",
     "authors": [
     {
-        "name": "Rudolf Batt",
-        "email": "rb@omikron.net"
+        "name": "FACTFinder",
+        "email": "info@flagbit.de"
     }
 ],
     "suggest": {
