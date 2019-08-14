@@ -5,7 +5,7 @@
  * @category Mage
  * @package FACTFinder_Core
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  *
@@ -17,21 +17,17 @@
  * @category Mage
  * @package FACTFinder_Core
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG (http://www.flagbit.de)
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG (http://www.flagbit.de)
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  */
 
 use FACTFinder\Loader as FF;
-use FACTFinder\Data as FFData;
 
 class FACTFinder_Core_Model_Handler_Search extends FACTFinder_Core_Model_Handler_Abstract
 {
 
     const SEARCH_STATUS_REGISTRY_KEY = 'ff_search_status';
-    const ORIGINAL_POSITION_FIELD    = '__ORIG_POSITION__';
-    const CAMPAIGN_NAME_FIELD        = '__FFCampaign__';
-    const INSTOREADS_PRODUCT_FIELD   = '__FFInstoreAds__';
 
     protected $_searchResult;
     protected $_searchResultCount;
@@ -127,7 +123,9 @@ class FACTFinder_Core_Model_Handler_Search extends FACTFinder_Core_Model_Handler
             $params['verbose'] = 'true';
         }
 
-        $params['sid'] = Mage::helper('factfinder_tracking')->getSessionId();
+        if(Mage::getStoreConfigFlag('factfinder/config/personalization')) {
+            $params['sid'] = Mage::helper('factfinder_tracking')->getSessionId();
+        }
 
         return $params;
     }
@@ -184,9 +182,7 @@ class FACTFinder_Core_Model_Handler_Search extends FACTFinder_Core_Model_Handler
                         array(
                             'similarity' => $record->getSimilarity(),
                             'position' => $record->getPosition(),
-                            'original_position' => $record->getField(self::ORIGINAL_POSITION_FIELD),
-                            'campaign' => $record->getField(self::CAMPAIGN_NAME_FIELD),
-                            'instore_ads' => $record->getField(self::INSTOREADS_PRODUCT_FIELD)
+                            'original_position' => $record->getField('__ORIG_POSITION__')
                         )
                     );
                 }
@@ -200,11 +196,11 @@ class FACTFinder_Core_Model_Handler_Search extends FACTFinder_Core_Model_Handler
     /**
      * Get pagination object from FF
      *
-     * @return \FACTFinder\Data\Paging|null
+     * @return \FACTFinder\Data\Paging
      */
     public function getPaging()
     {
-        if (!Mage::helper('factfinder')->isEnabled() || !$this->isSearchHasResult()) {
+        if (!$this->isSearchHasResult()) {
             return null;
         }
 
@@ -219,7 +215,7 @@ class FACTFinder_Core_Model_Handler_Search extends FACTFinder_Core_Model_Handler
      */
     public function getSorting()
     {
-        if (!Mage::helper('factfinder')->isEnabled() || !$this->isSearchHasResult()) {
+        if (!$this->isSearchHasResult()) {
             return null;
         }
 
@@ -233,7 +229,7 @@ class FACTFinder_Core_Model_Handler_Search extends FACTFinder_Core_Model_Handler
      */
     public function getResultsPerPageOptions()
     {
-        if (!Mage::helper('factfinder')->isEnabled() || !$this->isSearchHasResult()) {
+        if (!$this->isSearchHasResult()) {
             return null;
         }
 
@@ -295,23 +291,6 @@ class FACTFinder_Core_Model_Handler_Search extends FACTFinder_Core_Model_Handler
     public function isSearchHasResult()
     {
         return $this->getSearchStatus() !== \FACTFinder\Data\SearchStatus::NoResult();
-    }
-
-
-    /**
-     * Get default option for the "items per page" dropdown
-     *
-     * @return bool|FFData\Item
-     */
-    public function getDefaultPerPageOption()
-    {
-        $option = $this->getResultsPerPageOptions()->getDefaultOption();
-
-        if ($option instanceof FFData\Item) {
-            return $option;
-        }
-
-        return false;
     }
 
 

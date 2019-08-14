@@ -88,8 +88,6 @@ class Tracking extends AbstractAdapter
      * @param int $pageSize size of the page where the product was found (optional - is 12 by default)
      * @param int $origPageSize original size of the page before the user could have changed it (optional - is set equals to $page by default)
      * @param string $userId id of user (optional if modul personalisation is not used)
-     * @param string $campaign campaign name (optional)
-     * @param boolean $instoreAds determines whether it's a sponsered product (optional)
      * @return boolean $success
      */
     public function trackClick(
@@ -105,12 +103,10 @@ class Tracking extends AbstractAdapter
         $title = '',
         $pageSize = 12,
         $origPageSize = -1,
-        $userId = null,
-        $campaign = null,
-        $instoreAds = false
+        $userId = null
     ) {
         $this->setupClickTracking($id, $query, $pos, $masterId, $sid, $cookieId, $origPos, $page,
-                                  $simi, $title, $pageSize, $origPageSize, $userId, $campaign, $instoreAds);
+                                  $simi, $title, $pageSize, $origPageSize, $userId);
         return $this->applyTracking();
     }
 
@@ -132,9 +128,7 @@ class Tracking extends AbstractAdapter
         $title = '',
         $pageSize = 12,
         $origPageSize = -1,
-        $userId = null,
-        $campaign = null,
-        $instoreAds = false
+        $userId = null
     ) {
         if (strlen($sid) == 0) $sid = session_id();
         if ($origPos == -1) $origPos = $pos;
@@ -156,8 +150,6 @@ class Tracking extends AbstractAdapter
         if (strlen($userId) > 0) $params['userId'] = $userId;
         if (strlen($cookieId) > 0) $params['cookieId'] = $cookieId;
         if (strlen($masterId) > 0) $params['masterId'] = $masterId;
-        if (strlen($campaign) > 0) $params['campaign'] = $campaign;
-        if ($instoreAds) $params['instoreAds'] = 'true';
         
         $this->parameters->clear();
         $this->parameters->setAll($params);
@@ -175,8 +167,6 @@ class Tracking extends AbstractAdapter
      * @param int $count number of items purchased for each product (optional - default 1)
      * @param float $price this is the single unit price (optional)
      * @param string $userId id of user (optional if modul personalisation is not used)
-     * @param string $campaign campaign name (optional)
-     * @param boolean $instoreAds determines whether it's a sponsered product (optional)
      * @return boolean $success
      */
     public function trackCart(
@@ -188,11 +178,9 @@ class Tracking extends AbstractAdapter
         $cookieId = null,
         $count = 1,
         $price = null,
-        $userId = null,
-        $campaign = null,
-        $instoreAds = false
+        $userId = null
     ) {
-        $this->setupCartTracking($id, $masterId, $title, $query, $sid, $cookieId, $count, $price, $userId, $campaign, $instoreAds);
+        $this->setupCartTracking($id, $masterId, $title, $query, $sid, $cookieId, $count, $price, $userId);
         return $this->applyTracking();
     }
 
@@ -210,9 +198,7 @@ class Tracking extends AbstractAdapter
         $cookieId = null,
         $count = 1,
         $price = null,
-        $userId = null,
-        $campaign = null,
-        $instoreAds = false
+        $userId = null
     ) {
         if (strlen($sid) == 0) $sid = session_id();
         $params = array(
@@ -228,8 +214,6 @@ class Tracking extends AbstractAdapter
         if (strlen($cookieId) > 0) $params['cookieId'] = $cookieId;
         if (strlen($masterId) > 0) $params['masterId'] = $masterId;
         if (strlen($query) > 0) $params['query'] = $query;
-        if (strlen($campaign) > 0) $params['campaign'] = $campaign;
-        if ($instoreAds) $params['instoreAds'] = 'true';
         
         $this->parameters->clear();
         $this->parameters->setAll($params);
@@ -247,8 +231,6 @@ class Tracking extends AbstractAdapter
      * @param int $count number of items purchased for each product (optional - default 1)
      * @param float $price this is the single unit price (optional)
      * @param string $userId id of user (optional if modul personalisation is not used)
-     * @param string $campaign campaign name (optional)
-     * @param boolean $instoreAds determines whether it's a sponsered product (optional)
      * @return boolean $success
      */
     public function trackCheckout(
@@ -260,11 +242,9 @@ class Tracking extends AbstractAdapter
         $cookieId = null,
         $count = 1,
         $price = null,
-        $userId = null,
-        $campaign = null,
-        $instoreAds = false
+        $userId = null
     ) {
-        $this->setupCheckoutTracking($id, $masterId, $title, $query, $sid, $cookieId, $count, $price, $userId, $campaign, $instoreAds);
+        $this->setupCheckoutTracking($id, $masterId, $title, $query, $sid, $cookieId, $count, $price, $userId);
         return $this->applyTracking();
     }
 
@@ -282,9 +262,7 @@ class Tracking extends AbstractAdapter
         $cookieId = null,
         $count = 1,
         $price = null,
-        $userId = null,
-        $campaign = null,
-        $instoreAds = false
+        $userId = null
     ) {
         if (strlen($sid) == 0) $sid = session_id();
         $params = array(
@@ -301,8 +279,6 @@ class Tracking extends AbstractAdapter
         if (strlen($cookieId) > 0) $params['cookieId'] = $cookieId;
         if (strlen($query) > 0) $params['query'] = $query;
         if (strlen($masterId) > 0) $params['masterId'] = $masterId;
-        if (strlen($campaign) > 0) $params['campaign'] = $campaign;
-        if ($instoreAds) $params['instoreAds'] = 'true';
         
         $this->parameters->clear();
         $this->parameters->setAll($params);

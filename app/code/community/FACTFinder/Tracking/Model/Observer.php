@@ -5,7 +5,7 @@
  * @category Mage
  * @package FACTFinder_Tracking
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  *
@@ -17,7 +17,7 @@
  * @category Mage
  * @package FACTFinder_Tracking
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  */
@@ -184,38 +184,27 @@ class FACTFinder_Tracking_Model_Observer
         }
 
         $idFieldName = Mage::helper('factfinder_tracking')->getIdFieldName();
+        if ($idFieldName == 'entity_id') {
+            $idFieldName = 'product_id'; // sales_order_item does not contain a entity_id
+        }
 
-        /** @var Mage_Sales_Model_Order_Item $item */
         foreach ($order->getAllItems() as $item) {
-            if ($item->getChildrenItems()) {
+            if ($item->getParentItem() != null) {
                 continue;
-            }
-
-            // use product id as default value in case there's no parent item
-            $parentProductId = $item->getProduct()->getData($idFieldName);
-            $price = $item->getPrice();
-
-            $parentItem = $item->getParentItem();
-
-            if ($parentItem) {
-                $parentProductId = $parentItem->getProduct()->getData($idFieldName);
-                if ($parentItem->getProduct()->isConfigurable()) {
-                    $price = $parentItem->getPrice();
-                }
             }
 
             try {
                 Mage::getModel('factfinder_tracking/queue')
-                    ->setProductId($item->getProduct()->getData($idFieldName))
-                    ->setParentProductId($parentProductId)
+                    ->setProductId($item->getData($idFieldName))
                     ->setProductName($item->getName())
                     ->setSid(Mage::helper('factfinder_tracking')->getSessionId())
                     ->setUserid($customerId)
-                    ->setPrice($price)
+                    ->setPrice($item->getPrice())
                     ->setCount($item->getQtyOrdered())
                     ->setStoreId($order->getStoreId())
                     ->save();
-            } catch (Exception $e) {
+            }
+            catch (Exception $e) {
                 Mage::logException($e);
             }
         }
@@ -234,9 +223,6 @@ class FACTFinder_Tracking_Model_Observer
             return;
         }
 
-        // Autoloader is initialized on controller_front_init_before which is NOT called in cron context, load it now
-        Mage::getModel('factfinder/autoloader')->addAutoloader(new Varien_Event_Observer());
-
         $queue = Mage::getModel('factfinder_tracking/queue');
 
         try {
@@ -250,11 +236,10 @@ class FACTFinder_Tracking_Model_Observer
                 $tracking = Mage::getModel('factfinder_tracking/handler_tracking');
                 $tracking->setStoreId($storeId);
 
-                /** @var FACTFinder_Tracking_Model_Queue $item */
                 foreach ($items as $item) {
                     $tracking->setupCheckoutTracking(
                         $item->getProductId(),
-                        $item->getParentProductId(),
+                        $item->getProductId(),
                         $item->getProductName(),
                         null,
                         $item->getSid(),

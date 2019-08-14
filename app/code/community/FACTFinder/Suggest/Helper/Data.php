@@ -5,7 +5,7 @@
  * @category Mage
  * @package FACTFinder_Suggest
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  *
@@ -17,7 +17,7 @@
  * @category Mage
  * @package FACTFinder_Suggest
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  */
@@ -47,9 +47,6 @@ class FACTFinder_Suggest_Helper_Data extends Mage_Core_Helper_Abstract
             if (Mage::app()->getStore()->isCurrentlySecure()) {
                 $url = preg_replace('/^http:/', 'https:', $url);
             }
-
-            // remove all parameters except for channel
-            $url = $this->removeUrlParams($url, array('channel'));
         }
 
         // avoid specifying the default port for http
@@ -98,9 +95,7 @@ class FACTFinder_Suggest_Helper_Data extends Mage_Core_Helper_Abstract
     {
         $exportHelper = Mage::helper('factfinder/export');
         $channel = Mage::helper('factfinder')->getPrimaryChannel($storeId);
-        /** @var FACTFinder_Suggest_Model_Facade $facade */
         $facade = Mage::getModel('factfinder_suggest/facade');
-        $facade->setStoreId($storeId);
         $download = !$exportHelper->useFtp($storeId);
         $delay = $exportHelper->getImportDelay(self::IMPORT_TYPE);
 
@@ -114,32 +109,6 @@ class FACTFinder_Suggest_Helper_Data extends Mage_Core_Helper_Abstract
         } else {
             $facade->triggerSuggestImport($channel, $download);
         }
-    }
-
-
-    /**
-     * Remove all parameters from url except for specified
-     *
-     * @param string $url
-     * @param array  $exclude
-     *
-     * @return string
-     */
-    protected function removeUrlParams($url, $exclude = array())
-    {
-        $excludeParams = array();
-
-        foreach ($exclude as $paramName) {
-            preg_match("/[&|?]{$paramName}=([^&]*)&?/", $url, $values);
-            if (isset($values[1])) {
-                $excludeParams[$paramName] = $values[1];
-            }
-        }
-
-        $url = strtok($url, '?');
-        $query = http_build_query($excludeParams);
-
-        return $url . '?' . $query;
     }
 
 

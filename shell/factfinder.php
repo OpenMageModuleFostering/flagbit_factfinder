@@ -10,22 +10,7 @@ class Mage_Shell_FactFinder extends Mage_Shell_Abstract
     const EXPORT_STORE_STOCK              = 'exportStoreStock';
     const EXPORT_STORE                    = 'exportStore';
 
-    /**
-     * Mage_Shell_FactFinder constructor.
-     */
-    public function __construct()
-    {
-        parent::__construct();
 
-        // Additionally add module autoloader
-        $autoloaderClass = new FACTFinder_Core_Model_Autoloader();
-        $autoloaderClass->addAutoloader(new Varien_Event_Observer());
-    }
-
-
-    /**
-     * @return void
-     */
     public function run()
     {
         if ($this->getArg('exportAll') || $this->getArg('exportall')) {
@@ -84,7 +69,7 @@ USAGE;
         }
 
         foreach (Mage::helper('factfinder/export')->getExportTypes() as $type) {
-            $file = Mage::getModel('factfinder/export_type_' . $type)
+            $file = Mage::getModel('factfinder/export_' . $type)
                 ->saveExport($this->getArg(self::EXPORT_ALL_TYPES_FOR_STORE));
             printf("Successfully generated %s export to: %s\n", $type, $file);
         }
@@ -99,7 +84,7 @@ USAGE;
     private function exportAllTypesForAllStores()
     {
         foreach (array('stock', 'price', 'product') as $type) {
-            $files = Mage::getModel('factfinder/export_type_' . $type)
+            $files = Mage::getModel('factfinder/export_' . $type)
                 ->saveAll();
             foreach ($files as $file) {
                 printf("Successfully generated %s export to: %s\n", $type, $file);
@@ -120,7 +105,7 @@ USAGE;
             return;
         }
 
-        $file = Mage::getModel('factfinder/export_type_stock')->saveExport($this->getArg(self::EXPORT_STORE_STOCK));
+        $file = Mage::getModel('factfinder/export_stock')->saveExport($this->getArg(self::EXPORT_STORE_STOCK));
         printf("Successfully generated stock export to: %s\n", $file);
     }
 
@@ -137,7 +122,7 @@ USAGE;
             return;
         }
 
-        $file = Mage::getModel('factfinder/export_type_price')->saveExport($this->getArg(self::EXPORT_STORE_PRICE));
+        $file = Mage::getModel('factfinder/export_price')->saveExport($this->getArg(self::EXPORT_STORE_PRICE));
         printf("Successfully generated price export to: %s\n", $file);
     }
 
@@ -154,7 +139,7 @@ USAGE;
             return;
         }
 
-        $file = Mage::getModel('factfinder/export_type_product')->saveExport($this->getArg(self::EXPORT_STORE));
+        $file = Mage::getModel('factfinder/export_product')->saveExport($this->getArg(self::EXPORT_STORE));
         printf("Successfully generated export to: %s\n", $file);
     }
 
@@ -166,7 +151,7 @@ USAGE;
      */
     private function exportAll()
     {
-        $files = Mage::getModel('factfinder/export_type_product')->saveAll();
+        $files = Mage::getModel('factfinder/export_product')->saveAll();
         echo "Successfully generated the following files:\n";
         foreach ($files as $file) {
             echo $file . "\n";

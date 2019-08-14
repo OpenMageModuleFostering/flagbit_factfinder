@@ -5,7 +5,7 @@
  * @category Mage
  * @package FACTFinder_Core
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  *
@@ -19,17 +19,14 @@
  * @category Mage
  * @package FACTFinder_Core
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG (http://www.flagbit.de)
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG (http://www.flagbit.de)
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  */
-class FACTFinder_Core_Model_Export_Type_Price extends Mage_Core_Model_Resource_Db_Abstract
-    implements FACTFinder_Core_Model_Export_Type_Interface
+class FACTFinder_Core_Model_Export_Price extends Mage_Core_Model_Resource_Db_Abstract
 {
 
     const FILENAME_PATTERN = 'store_%s_price.csv';
-    const FILE_VALIDATOR = 'factfinder/file_validator_price';
-    const CSV_DELIMITER = ';';
 
     /**
      * defines Export Columns
@@ -86,11 +83,6 @@ class FACTFinder_Core_Model_Export_Type_Price extends Mage_Core_Model_Resource_D
             $dir = Mage::helper('factfinder/export')->getExportDirectory();
             $fileName = $this->getFilenameForStore($storeId);
             $this->_file = Mage::getModel('factfinder/file');
-
-            if (Mage::helper('factfinder/export')->isValidationEnabled($storeId) ) {
-                $this->_file->setValidator(Mage::getModel(self::FILE_VALIDATOR));
-            }
-
             $this->_file->open($dir, $fileName);
         }
 
@@ -108,41 +100,31 @@ class FACTFinder_Core_Model_Export_Type_Price extends Mage_Core_Model_Resource_D
      */
     protected function _addCsvRow($data, $storeId = 0)
     {
-        return $this->_getFile($storeId)->writeCsv($data, self::CSV_DELIMITER);
+        return $this->_getFile($storeId)->writeCsv($data, ';');
     }
 
 
     /**
      * Export price data
+     * Write the data to file
      *
      * @param int $storeId Store Id
      *
-     * @return string|bool
+     * @return $this
      */
     public function saveExport($storeId = null)
     {
-        /** @var FACTFinder_Core_Model_Export_Semaphore $semaphore */
-        $semaphore = Mage::getModel('factfinder/export_semaphore');
-        $semaphore->setStoreId($storeId)
-            ->setType('price');
+        $this->_addCsvRow($this->_exportColumns, $storeId);
 
+        $page = 1;
+        $stocks = $this->_getPrices($storeId, $page);
 
-        try {
-            $semaphore->lock();
+        while ($stocks) {
+            foreach ($stocks as $stock) {
+                $this->_addCsvRow($stock, $storeId);
+            }
 
-            $this->_saveExport($storeId);
-
-            $semaphore->release();
-        } catch (RuntimeException $e) {
-            Mage::helper('factfinder/debug')->log('Export action was locked', true);
-            return false;
-        } catch (Exception $e) {
-            Mage::logException($e);
-            $semaphore->release();
-        }
-
-        if (!$this->_getFile($storeId)->isValid()) {
-            return false;
+            $stocks = $this->_getPrices($storeId, $page++);
         }
 
         return $this->_getFile($storeId)->getPath();
@@ -162,7 +144,7 @@ class FACTFinder_Core_Model_Export_Type_Price extends Mage_Core_Model_Resource_D
     {
 
         $store = Mage::app()->getStore($storeId);
-        $select = $this->_getReadAdapter()->select()
+        $select = $this->_getWriteAdapter()->select()
             ->from(
                 array('e' => $this->getTable('catalog/product_index_price')),
                 $this->_exportColumns);
@@ -174,7 +156,7 @@ class FACTFinder_Core_Model_Export_Type_Price extends Mage_Core_Model_Resource_D
         $select->limitPage($part, $limit)
             ->order('e.entity_id');
 
-        return $this->_getReadAdapter()->fetchAll($select);
+        return $this->_getWriteAdapter()->fetchAll($select);
     }
 
 
@@ -188,72 +170,15 @@ class FACTFinder_Core_Model_Export_Type_Price extends Mage_Core_Model_Resource_D
         $paths = array();
         $stores = Mage::app()->getStores();
         foreach ($stores as $id => $store) {
-            if (!Mage::helper('factfinder')->isEnabled(null, $id)) {
-                continue;
-            }
-
             try {
-                $price = Mage::getModel('factfinder/export_type_price');
-                $filePath = $price->saveExport($id);
-                if ($filePath) {
-                    $paths[] = $filePath;
-                }
+                $price = Mage::getModel('factfinder/export_price');
+                $paths[] = $price->saveExport($id);
             } catch (Exception $e) {
                 Mage::logException($e);
             }
         }
 
         return $paths;
-    }
-
-
-    /**
-     * Get number of entries to be exported
-     *
-     * @param int $storeId
-     *
-     * @return int
-     */
-    public function getSize($storeId)
-    {
-        $select = $this->_getWriteAdapter()->select()
-            ->from(
-                array('e' => $this->getTable('catalog/product_index_price')),
-                new Zend_Db_Expr('count(*)')
-            );
-
-        $store = Mage::app()->getStore($storeId);
-        if ($storeId !== null) {
-            $select->where('e.website_id = ?', $store->getWebsiteId());
-        }
-
-        return (int) $this->_getReadAdapter()->fetchOne($select);
-    }
-
-
-    /**
-     * Perform export actions and write to file
-     *
-     * @param int $storeId
-     *
-     * @return FACTFinder_Core_Model_Export_Type_Price
-     */
-    protected function _saveExport($storeId)
-    {
-        $this->_addCsvRow($this->_exportColumns, $storeId);
-
-        $page = 1;
-        $stocks = $this->_getPrices($storeId, $page);
-
-        while ($stocks) {
-            foreach ($stocks as $stock) {
-                $this->_addCsvRow($stock, $storeId);
-            }
-
-            $stocks = $this->_getPrices($storeId, ++$page);
-        }
-
-        return $this;
     }
 
 

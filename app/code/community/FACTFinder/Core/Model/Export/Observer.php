@@ -5,7 +5,7 @@
  * @category Mage
  * @package magento
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG
  * @license https://opensource.org/licenses/MIT The MIT License (MIT)
  * @link http://www.flagbit.de
  */
@@ -20,18 +20,12 @@ class FACTFinder_Core_Model_Export_Observer
      */
     public function triggerImportAfterExport($observer)
     {
-        $file = $observer->getFile();
-
-        if (!$file instanceof FACTFinder_Core_Model_File || !$file->isValid()) {
-            return;
-        }
-
         $helper = Mage::helper('factfinder');
         $storeId = $observer->getStoreId();
 
         $this->uploadFileToFtp($observer);
 
-        if (Mage::helper('factfinder/export')->isImportTriggerEnabled($storeId)) {
+        if ($helper->isEnabled() && Mage::helper('factfinder/export')->isImportTriggerEnabled($storeId)) {
             $channel = $helper->getPrimaryChannel($storeId);
             $download = !Mage::helper('factfinder/export')->useFtp($storeId);
             $facade = Mage::getModel('factfinder/facade');
@@ -91,7 +85,7 @@ class FACTFinder_Core_Model_Export_Observer
     public function exportAll($observer)
     {
         foreach (Mage::helper('factfinder/export')->getExportTypes() as $type) {
-            Mage::getModel('factfinder/export_type_' . $type)->saveAll();
+            Mage::getModel('factfinder/export_' . $type)->saveAll();
         }
     }
 

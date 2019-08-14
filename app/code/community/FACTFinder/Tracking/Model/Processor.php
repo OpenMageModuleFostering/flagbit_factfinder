@@ -5,7 +5,7 @@
  * @category Mage
  * @package FACTFinder_Tracking
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  *
@@ -21,13 +21,12 @@ require_once BP . DS . 'lib' . DS . 'FACTFinder' . DS . 'Loader.php';
  * @category Mage
  * @package FACTFinder_Tracking
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  */
 class FACTFinder_Tracking_Model_Processor
 {
-    const TRACKING_FRONT_NAME = 'ff_tracking';
 
     /**
      * FactFinder Facade
@@ -81,21 +80,16 @@ class FACTFinder_Tracking_Model_Processor
         return $this->_facade;
     }
 
-
      /**
-     * Bypass app cache if it's a tracking request
+     * Bypass app cache.
      *
      * @param string $content
      *
-     * @return string|bool
+     * @return false
      */
     public function extractContent($content)
     {
-        if (strpos($this->_getRequestPath(), self::TRACKING_FRONT_NAME) !== false) {
-            return false;
-        };
-
-        return $content;
+        return false;
     }
     
     /**
@@ -117,33 +111,4 @@ class FACTFinder_Tracking_Model_Processor
         }
         return $this->_getFacade()->getTrackingAdapter()->doTrackingFromRequest($sessionId, $customerId);
     }
-
-
-    /**
-     * Return current page base url
-     *
-     * @return string
-     */
-    protected function _getRequestPath()
-    {
-        $url = false;
-
-        /**
-         * Define request URI
-         */
-        if (isset($_SERVER['REQUEST_URI'])) {
-            $url = $_SERVER['REQUEST_URI'];
-        } elseif (!empty($_SERVER['IIS_WasUrlRewritten']) && !empty($_SERVER['UNENCODED_URL'])) {
-            $url = $_SERVER['UNENCODED_URL'];
-        } elseif (isset($_SERVER['ORIG_PATH_INFO'])) {
-            $url = $_SERVER['ORIG_PATH_INFO'];
-            if (!empty($_SERVER['QUERY_STRING'])) {
-                $url .= $_SERVER['QUERY_STRING'];
-            }
-        }
-
-        return parse_url($url, PHP_URL_PATH);
-    }
-
-
 }

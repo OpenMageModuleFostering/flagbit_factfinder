@@ -5,7 +5,7 @@
  * @category Mage
  * @package FACTFinder_Core
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  *
@@ -19,17 +19,14 @@
  * @category Mage
  * @package FACTFinder_Core
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG (http://www.flagbit.de)
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG (http://www.flagbit.de)
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  */
-class FACTFinder_Core_Model_Export_Type_Stock extends Mage_Core_Model_Resource_Db_Abstract
-    implements FACTFinder_Core_Model_Export_Type_Interface
+class FACTFinder_Core_Model_Export_Stock extends Mage_Core_Model_Resource_Db_Abstract
 {
 
     const FILENAME_PATTERN = 'store_%s_stock.csv';
-    const FILE_VALIDATOR = 'factfinder/file_validator_stock';
-    const CSV_DELIMITER = ';';
 
     /**
      * defines Export Columns
@@ -87,11 +84,6 @@ class FACTFinder_Core_Model_Export_Type_Stock extends Mage_Core_Model_Resource_D
             $dir = Mage::helper('factfinder/export')->getExportDirectory();
             $fileName = $this->getFilenameForStore($storeId);
             $this->_file = Mage::getModel('factfinder/file');
-
-            if (Mage::helper('factfinder/export')->isValidationEnabled($storeId)) {
-                $this->_file->setValidator(Mage::getModel(self::FILE_VALIDATOR));
-            }
-
             $this->_file->open($dir, $fileName);
         }
 
@@ -109,40 +101,31 @@ class FACTFinder_Core_Model_Export_Type_Stock extends Mage_Core_Model_Resource_D
      */
     protected function _addCsvRow($data, $storeId = 0)
     {
-        return $this->_getFile($storeId)->writeCsv($data, self::CSV_DELIMITER);
+        return $this->_getFile($storeId)->writeCsv($data, ';');
     }
 
 
     /**
-     * Export Stock Data
+     * export Stock Data
+     * Write the data to file
      *
-     * @param int $storeId Store ID
+     * @param int $storeId Store Id
      *
-     * @return bool|string
+     * @return $this
      */
     public function saveExport($storeId = null)
     {
-        /** @var FACTFinder_Core_Model_Export_Semaphore $semaphore */
-        $semaphore = Mage::getModel('factfinder/export_semaphore');
-        $semaphore->setStoreId($storeId)
-            ->setType('stock');
+        $this->_addCsvRow($this->_exportColumns, $storeId);
 
-        try {
-            $semaphore->lock();
+        $page = 1;
+        $stocks = $this->_getStockData($storeId, $page);
 
-            $this->_saveExport($storeId);
+        while ($stocks) {
+            foreach($stocks as $stock){
+                $this->_addCsvRow($stock, $storeId);
+            }
 
-            $semaphore->release();
-        } catch (RuntimeException $e) {
-            Mage::helper('factfinder/debug')->log('Export action was locked', true);
-            return false;
-        } catch (Exception $e) {
-            Mage::logException($e);
-            $semaphore->release();
-        }
-
-        if (!$this->_getFile($storeId)->isValid()) {
-            return false;
+            $stocks = $this->_getStockData($storeId, $page++);
         }
 
         return $this->_getFile($storeId)->getPath();
@@ -160,8 +143,9 @@ class FACTFinder_Core_Model_Export_Type_Stock extends Mage_Core_Model_Resource_D
      */
     protected function _getStockData($storeId, $part = 1, $limit = 100)
     {
+
         $store  = Mage::app()->getStore($storeId);
-        $select = $this->_getReadAdapter()->select()
+        $select = $this->_getWriteAdapter()->select()
             ->from(
                 array('e' => $this->getTable('cataloginventory/stock_status')),
                 $this->_exportColumns
@@ -174,7 +158,7 @@ class FACTFinder_Core_Model_Export_Type_Stock extends Mage_Core_Model_Resource_D
         $select->limitPage($part, $limit)
             ->order('e.product_id');
 
-        return $this->_getReadAdapter()->fetchAll($select);
+        return $this->_getWriteAdapter()->fetchAll($select);
     }
 
 
@@ -188,73 +172,15 @@ class FACTFinder_Core_Model_Export_Type_Stock extends Mage_Core_Model_Resource_D
         $paths = array();
         $stores = Mage::app()->getStores();
         foreach ($stores as $store) {
-            if (!Mage::helper('factfinder')->isEnabled(null, $store->getId())) {
-                continue;
-            }
-
             try {
-                /** @var FACTFinder_Core_Model_Export_Type_Stock $stock */
-                $stock = Mage::getModel('factfinder/export_type_stock');
-                $filePath = $stock->saveExport($store->getId());
-                if ($filePath) {
-                    $paths[] = $filePath;
-                }
+                $stock = Mage::getModel('factfinder/export_stock');
+                $paths[] = $stock->saveExport($store->getId());
             } catch (Exception $e) {
                 Mage::logException($e);
             }
         }
 
         return $paths;
-    }
-
-
-    /**
-     * Get number of rows to be exported
-     *
-     * @param $storeId
-     *
-     * @return int
-     */
-    public function getSize($storeId)
-    {
-        $store  = Mage::app()->getStore($storeId);
-        $select = $this->_getReadAdapter()->select()
-            ->from(
-                array('e' => $this->getTable('cataloginventory/stock_status')),
-                new Zend_Db_Expr('count(*)')
-            );
-
-        if ($storeId !== null) {
-            $select->where('e.website_id = ?', $store->getWebsiteId());
-        }
-
-        return (int) $this->_getReadAdapter()->fetchOne($select);
-    }
-
-
-    /**
-     * Perform export action and try to write that to file
-     *
-     * @param int $storeId
-     *
-     * @return FACTFinder_Core_Model_Export_Type_Stock
-     */
-    protected function _saveExport($storeId)
-    {
-        $this->_addCsvRow($this->_exportColumns, $storeId);
-
-        $page = 1;
-        $stocks = $this->_getStockData($storeId, $page);
-
-        while ($stocks) {
-            foreach ($stocks as $stock) {
-                $this->_addCsvRow($stock, $storeId);
-            }
-
-            $stocks = $this->_getStockData($storeId, ++$page);
-        }
-
-        return $this;
     }
 
 

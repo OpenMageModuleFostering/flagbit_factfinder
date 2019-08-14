@@ -27,33 +27,15 @@ class FACTFinder_Campaigns_Block_Pushed_Product extends FACTFinder_Campaigns_Blo
 
 
     /**
-     * @return Mage_Core_Model_Abstract
-     */
-    protected function _getHandler()
-    {
-        $product = Mage::registry('current_product');
-        if ($product) {
-            $productId = $product->getData(Mage::helper('factfinder_campaigns')->getIdFieldName());
-            return Mage::getSingleton($this->_handlerModel, array($productId));
-        }
-
-        return parent::_getHandler();
-    }
-
-
-    /**
      * Check is the campign can be shown on product page
      *
      * @return bool
      */
     protected function _canBeShown()
     {
-        if (!Mage::registry('current_product')
-            || !Mage::helper('factfinder_campaigns')->canShowCampaignsOnProduct())
-        {
-            return false;
-        }
-        return (bool) Mage::helper('factfinder')->isEnabled('campaigns');
+        $enabledOnProduct = Mage::helper('factfinder_campaigns')->canShowCampaignsOnProduct();
+
+        return parent::_canBeShown() && $enabledOnProduct;
     }
 
 

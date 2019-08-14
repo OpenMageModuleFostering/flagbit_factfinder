@@ -3,7 +3,7 @@ namespace FACTFinder\Adapter;
 
 use FACTFinder\Loader as FF;
 
-class Recommendation extends PersonalisedResponse
+class Recommendation extends AbstractAdapter
 {
     /**
      * @var FACTFinder\Util\LoggerInterface
@@ -14,6 +14,17 @@ class Recommendation extends PersonalisedResponse
      * @var FACTFinder\Data\Result
      */
     private $recommendations;
+
+    /**
+     * @var bool
+     */
+    private $recommendationsUpToDate = false;
+
+    /**
+     * @var bool
+     */
+    private $idsOnly = false;
+
 
     public function __construct(
         $loggerClass,
@@ -57,7 +68,7 @@ class Recommendation extends PersonalisedResponse
         }
         // Make sure that the recommendations are fetched again. In theory,
         // we only have to do this when recordCount increases.
-        $this->upToDate = false;
+        $this->recommendationsUpToDate = false;
     }
 
     /**
@@ -70,7 +81,7 @@ class Recommendation extends PersonalisedResponse
     {
         $parameters = $this->request->getParameters();
         $parameters['id'] = $productIDs;
-        $this->upToDate = false;
+        $this->recommendationsUpToDate = false;
     }
 
     /**
@@ -83,7 +94,34 @@ class Recommendation extends PersonalisedResponse
     {
         $parameters = $this->request->getParameters();
         $parameters->add('id', $productIDs);
-        $this->upToDate = false;
+        $this->recommendationsUpToDate = false;
+    }
+
+    /**
+     * Set this to true to only retrieve the IDs of recommended products instead
+     * of full Record objects.
+     * @param $idsOnly bool
+     */
+    public function setIdsOnly($idsOnly)
+    {
+        // Reset the recommendations, if more detail is wanted than before
+        if($this->idsOnly && !$idsOnly)
+            $this->recommendationsUpToDate = false;
+
+        $this->idsOnly = $idsOnly;
+        $parameters = $this->request->getParameters();
+        $parameters['idsOnly'] = $idsOnly ? 'true' : 'false';
+    }
+
+    /**
+     * Set value for parameter sid for personalization.
+     *
+     * @param string $sid session id
+     */
+    public function setSid($sid)
+    {
+        $this->parameters['sid'] = $sid;
+        $this->recommendationsUpToDate = false;
     }
 
     /**
@@ -95,11 +133,11 @@ class Recommendation extends PersonalisedResponse
     public function getRecommendations()
     {
         if (is_null($this->recommendations)
-            || !$this->upToDate
+            || !$this->recommendationsUpToDate
         ) {
             $this->request->resetLoaded();
             $this->recommendations = $this->createRecommendations();
-            $this->upToDate = true;
+            $this->recommendationsUpToDate = true;
         }
 
         return $this->recommendations;
@@ -127,7 +165,10 @@ class Recommendation extends PersonalisedResponse
                 $position = 1;
                 foreach($recommenderData as $recordData)
                 {
-                    $records[] = $this->createRecord($recordData, $position++);
+                    if ($this->idsOnly)
+                        $records[] = $this->createSparseRecord($recordData);
+                    else
+                        $records[] = $this->createRecord($recordData, $position++);
                 }
             }
         }
@@ -137,6 +178,14 @@ class Recommendation extends PersonalisedResponse
             $records,
             null,
             count($records)
+        );
+    }
+
+    private function createSparseRecord($recordData)
+    {
+        return FF::getInstance(
+            'Data\Record',
+            (string)$recordData['id']
         );
     }
 

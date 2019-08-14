@@ -5,7 +5,7 @@
  * @category Mage
  * @package FACTFinder_Core
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  *
@@ -17,7 +17,7 @@
  * @category Mage
  * @package FACTFinder_Core
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG (http://www.flagbit.de)
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG (http://www.flagbit.de)
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  */
@@ -224,9 +224,7 @@ class FACTFinder_Core_Block_Catalog_Product_List_Toolbar extends Mage_Catalog_Bl
 
         if (!isset($orders[$defaultOrder])) {
             $keys = array_keys($orders);
-            if (isset($keys[0])) {
-                $defaultOrder = $keys[0];
-            }
+            $defaultOrder = $keys[0];
         }
 
         // the only change of this method is here
@@ -457,11 +455,7 @@ class FACTFinder_Core_Block_Catalog_Product_List_Toolbar extends Mage_Catalog_Bl
         if ($this->_handler && Mage::helper('factfinder/search')->useResultsPerPageOptions()) {
             $currentLimit = $this->getRequest()->getParam($this->getLimitVarName());
             if ($currentLimit == null && $this->_handler->getResultsPerPageOptions() != null) {
-                if ($this->_handler->getDefaultPerPageOption()) {
-                    $currentLimit = $this->_handler->getDefaultPerPageOption()->getLabel();
-                } else {
-                    $currentLimit = parent::getLimit();
-                }
+                $currentLimit = $this->_handler->getResultsPerPageOptions()->getDefaultOption()->getLabel();
             }
 
             return $currentLimit;
@@ -534,9 +528,9 @@ class FACTFinder_Core_Block_Catalog_Product_List_Toolbar extends Mage_Catalog_Bl
     public function getDefaultPerPageValue()
     {
         if ($this->_handler && Mage::helper('factfinder/search')->useResultsPerPageOptions()
-            && $this->_handler->getDefaultPerPageOption()
+            && $this->_handler->getResultsPerPageOptions() != null
         ) {
-            return $this->_handler->getDefaultPerPageOption()->getLabel();
+            return $this->_handler->getResultsPerPageOptions()->getDefaultOption()->getLabel();
         }
 
         return parent::getDefaultPerPageValue();

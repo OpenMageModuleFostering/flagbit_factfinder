@@ -5,7 +5,7 @@
  * @category Mage
  * @package FACTFinder_Tracking
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  *
@@ -17,7 +17,7 @@
  * @category Mage
  * @package FACTFinder_Tracking
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  */
@@ -33,13 +33,7 @@ class FACTFinder_Tracking_Block_Recommendation extends FACTFinder_Tracking_Block
      */
     protected function getProductResultCollection()
     {
-        $collection = Mage::registry('recommendation_collection');
-
-        if (empty($collection)) {
-            $collection = array();
-        }
-
-        return $collection;
+        return Mage::registry('recommendation_collection');
     }
 
 

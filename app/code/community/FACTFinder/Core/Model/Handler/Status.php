@@ -5,7 +5,7 @@
  * @category Mage
  * @package FACTFinder_Core
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  *
@@ -35,7 +35,7 @@ define('FFE_SERVER_TIME_MISMATCH', 16183003); // server time is not consistent w
  * @category Mage
  * @package FACTFinder_Core
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG (http://www.flagbit.de)
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG (http://www.flagbit.de)
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  */
@@ -173,6 +173,12 @@ class FACTFinder_Core_Model_Handler_Status extends FACTFinder_Core_Model_Handler
 
         if (isset ($this->_errorMapping[$statusCode])) {
             $errorMessage .= $helper->__($this->_errorMapping[$statusCode]);
+        }
+
+        $codeType = (int) floor($statusCode / 1000) * 1000;
+
+        if (isset ($this->_errorMapping[$codeType])) {
+            $errorMessage .= $helper->__($this->_errorMapping[$statusCode], $statusCode - $codeType);
         } else {
             $errorMessage .= $helper->__('An unknown error has occurred. Please contact FACT-Finder Support.');
         }
@@ -285,9 +291,9 @@ class FACTFinder_Core_Model_Handler_Status extends FACTFinder_Core_Model_Handler
                 return FFE_HTTP_ERROR + $httpCode;
         }
 
-        $stackTrace = $response->getContent();
+        $stackTrace = $this->_getFacade()->getSearchAdapter()->getStackTrace();
         Mage::helper('factfinder/debug')->trace($stackTrace);
-        preg_match('/\"stacktrace\":\"([a-zA-Z0-9.]+)/', $stackTrace, $matches);
+        preg_match('/^(.+?):?\s/', $stackTrace, $matches);
         $ffException = $matches[1];
 
         switch ($ffException) {

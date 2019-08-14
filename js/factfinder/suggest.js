@@ -4,7 +4,7 @@
 * @category Mage
 * @package FACTFinder_Suggest
 * @author Flagbit Magento Team <magento@flagbit.de>
-* @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG
+* @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG
 * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
 * @link http://www.flagbit.de
 *
@@ -193,7 +193,6 @@ var FactFinderSuggest = Class.create(Varien.searchForm, {
             destinationElement,
             url,
             {
-                frequency: 0.1,
                 parameters: 'format=JSONP',
                 paramName: 'query',
                 method: 'get',
@@ -292,7 +291,7 @@ var FactFinderSuggest = Class.create(Varien.searchForm, {
 
             temp += '<span class="amount">' + (item.hitCount == 0 ? '' : item.hitCount) + '</span>';
             if (item.image) {
-                temp += '<span class="thumbnail"><img src="' + item.image + '" title="' + item.name + '" /></span>';
+                temp += '<img src="' + item.image + '" title="' + item.name + '" class="thumbnail"/>';
             }
 
             temp += item.name.replace(new RegExp("("+this.field.value+")","ig"), '<strong>$1</strong>');

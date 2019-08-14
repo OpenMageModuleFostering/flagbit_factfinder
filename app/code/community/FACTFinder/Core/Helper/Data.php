@@ -5,7 +5,7 @@
  * @category Mage
  * @package FACTFinder_Core
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  *
@@ -17,7 +17,7 @@
  * @category Mage
  * @package FACTFinder_Core
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG (http://www.flagbit.de)
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG (http://www.flagbit.de)
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  */
@@ -33,21 +33,20 @@ class FACTFinder_Core_Helper_Data extends Mage_Core_Helper_Abstract
      * Check if the module is enabled
      *
      * @param string|null $feature
-     * @param null|int    $storeId
      *
      * @return bool
      */
-    public function isEnabled($feature = null, $storeId = null)
+    public function isEnabled($feature = null)
     {
         if ($this->_getRequest()->getParam(self::SKIP_FF_PARAM_NAME)
-            && Mage::getStoreConfig(self::USE_FALLBACK_CONFIG_PATH, $storeId)
+            && Mage::getStoreConfig(self::USE_FALLBACK_CONFIG_PATH)
         ) {
             return false;
         }
 
-        $result = (bool) Mage::app()->getStore($storeId)->getConfig('factfinder/search/enabled');
+        $result = (bool) Mage::app()->getStore()->getConfig('factfinder/search/enabled');
         if ($feature !== null) {
-            $result &= (bool) Mage::app()->getStore($storeId)->getConfig('factfinder/modules/' . $feature);
+            $result &= (bool) Mage::app()->getStore()->getConfig('factfinder/modules/' . $feature);
         }
 
         return $result;

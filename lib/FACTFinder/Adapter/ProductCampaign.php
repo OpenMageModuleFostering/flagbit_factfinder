@@ -3,7 +3,7 @@ namespace FACTFinder\Adapter;
 
 use FACTFinder\Loader as FF;
 
-class ProductCampaign extends PersonalisedResponse
+class ProductCampaign extends AbstractAdapter
 {
     /**
      * @var FACTFinder\Util\LoggerInterface
@@ -18,8 +18,13 @@ class ProductCampaign extends PersonalisedResponse
     /**
      * @var bool
      */
-    protected $isShoppingCartCampaign = false;    
-    protected $isLandingPageCampaign = false;
+    protected $isShoppingCartCampaign = false;
+    private $campaignsUpToDate = false;
+    
+    /**
+     * @var bool
+     */
+    private $idsOnly = false;
 
     public function __construct(
         $loggerClass,
@@ -52,7 +57,7 @@ class ProductCampaign extends PersonalisedResponse
     {
         $parameters = $this->request->getParameters();
         $parameters['productNumber'] = $productNumbers;
-        $this->upToDate = false;
+        $this->campaignsUpToDate = false;
     }
 
     /**
@@ -65,19 +70,23 @@ class ProductCampaign extends PersonalisedResponse
     {
         $parameters = $this->request->getParameters();
         $parameters->add('productNumber', $productNumbers);
-        $this->upToDate = false;
+        $this->campaignsUpToDate = false;
     }
     
     /**
-     * Set the page id to get landing page campaigns.
-     *
-     * @param string $pageId The id which determines the campaigns for a page.
+     * Set this to true to only retrieve the IDs of pushed products instead
+     * of full Record objects.
+     * 
+     * @param $idsOnly bool
      */
-    public function setPageId($pageId)
+    public function setIDsOnly($idsOnly)
     {
+        if($this->idsOnly && !$idsOnly)
+            $this->campaignsUpToDate = false;
+
+        $this->idsOnly = $idsOnly;
         $parameters = $this->request->getParameters();
-        $parameters->add('pageId', $pageId);
-        $this->upToDate = false;
+        $parameters['idsOnly'] = $idsOnly ? 'true' : 'false';
     }
 
     /**
@@ -86,8 +95,7 @@ class ProductCampaign extends PersonalisedResponse
     public function makeProductCampaign()
     {
         $this->isShoppingCartCampaign = false;
-        $this->isLandingPageCampaign = false;
-        $this->upToDate = false;
+        $this->campaignsUpToDate = false;
         $this->parameters['do'] = 'getProductCampaigns';
     }
 
@@ -97,19 +105,8 @@ class ProductCampaign extends PersonalisedResponse
     public function makeShoppingCartCampaign()
     {
         $this->isShoppingCartCampaign = true;
-        $this->isLandingPageCampaign = false;
-        $this->upToDate = false;
+        $this->campaignsUpToDate = false;
         $this->parameters['do'] = 'getShoppingCartCampaigns';
-    }
-    
-    /**
-     * Sets the adapter up for fetching campaigns on landing pages
-     */
-    public function makePageCampaign()
-    {
-        $this->isLandingPageCampaign = true;
-        $this->upToDate = false;
-        $this->parameters['do'] = 'getPageCampaigns';
     }
 
     /**
@@ -121,11 +118,11 @@ class ProductCampaign extends PersonalisedResponse
     public function getCampaigns()
     {
         if (is_null($this->campaigns)
-            || !$this->upToDate
+            || !$this->campaignsUpToDate
         ) {
             $this->request->resetLoaded();
             $this->campaigns = $this->createCampaigns();
-            $this->upToDate = true;
+            $this->campaignsUpToDate = true;
         }
 
         return $this->campaigns;
@@ -134,20 +131,15 @@ class ProductCampaign extends PersonalisedResponse
     private function createCampaigns()
     {
         $campaigns = array();
-        
-        if ($this->isLandingPageCampaign && !isset($this->parameters['pageId']))
-        {
-            $this->log->warn('Page campaigns cannot be loaded without a page ID. '
-                           . 'Use setPageId() first.');
-        }
-        else if (!$this->isLandingPageCampaign && !isset($this->parameters['productNumber']))
+
+        if (!isset($this->parameters['productNumber']))
         {
             $this->log->warn('Product campaigns cannot be loaded without a product ID. '
                            . 'Use setProductIDs() or addProductIDs() first.');
         }
         else
         {
-            if ($this->isShoppingCartCampaign || $this->isLandingPageCampaign)
+            if ($this->isShoppingCartCampaign)
             {
                 $jsonData = $this->getResponseContent();
             }

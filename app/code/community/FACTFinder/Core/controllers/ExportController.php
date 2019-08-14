@@ -5,7 +5,7 @@
  * @category Mage
  * @package FACTFinder_Core
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  *
@@ -20,7 +20,7 @@
  * @category Mage
  * @package FACTFinder_Core
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG (http://www.flagbit.de)
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG (http://www.flagbit.de)
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  */
@@ -68,17 +68,8 @@ class FACTFinder_Core_ExportController extends Mage_Core_Controller_Front_Action
      */
     public function exportAction()
     {
-        $resource = Mage::app()->getRequest()->getParam('resource', 'product');
-
-        /** @var FACTFinder_Core_Model_Export_Semaphore $semaphore */
-        $semaphore = Mage::getModel('factfinder/export_semaphore');
-        $semaphore->setStoreId($this->_getStoreId())
-            ->setType($resource);
-
         try {
-            // only check if there's a lock
-            $semaphore->lock();
-            $semaphore->release();
+            $this->lockSemaphore();
         } catch (RuntimeException $e) {
             $this->loadLayout()
                 ->renderLayout();
@@ -86,15 +77,19 @@ class FACTFinder_Core_ExportController extends Mage_Core_Controller_Front_Action
             return;
         }
 
+        $resource = Mage::app()->getRequest()->getParam('resource', 'product');
         Mage::helper('factfinder/debug')->log(
-            'Export action called: resource=' . $resource . ', store='. $this->_getStoreId(),
-            true
-        );
+            'Export action called: resource=' . $resource . ', store='. $this->_getStoreId(), true);
 
         try {
-            $exportModel = Mage::getModel('factfinder/export_type_' . $resource);
-            $exportModel->saveExport($this->_getStoreId());
+            $exportModel = Mage::getModel('factfinder/export_' . $resource);
+            $exportModel->saveExport(
+                $this->_getStoreId()
+            );
+
+            $this->releaseSemaphore(); // finally-workaround
         } catch (Exception $e) {
+            $this->releaseSemaphore(); // finally-workaround
             Mage::helper('factfinder/debug')->error('Export action ' . $e->__toString());
             throw $e;
         }
@@ -167,6 +162,41 @@ class FACTFinder_Core_ExportController extends Mage_Core_Controller_Front_Action
             ->save();
 
         $this->_redirectReferer();
+    }
+
+
+    /**
+     * Locks the semaphore
+     * Throws an exception, if semaphore is already locked
+     **/
+    protected function lockSemaphore()
+    {
+        $mtime = @filemtime($this->_getLockFileName());
+        $semaphoreTimeout = FACTFinderCustom_Configuration::DEFAULT_SEMAPHORE_TIMEOUT;
+        if ($mtime && time() - $mtime < $semaphoreTimeout) {
+            throw new RuntimeException();
+        }
+        @touch($this->_getLockFileName());
+    }
+
+
+    /**
+     * Release the semaphore
+     */
+    protected function releaseSemaphore()
+    {
+        @unlink($this->_getLockFileName());
+    }
+
+
+    /**
+     * Retrieve the name of lockfile
+     *
+     * @return string
+     */
+    protected function _getLockFileName()
+    {
+        return Mage::getBaseDir('var') . DS . 'locks' . DS . 'ffexport_' . $this->_getStoreId() . '.lock';
     }
 
 

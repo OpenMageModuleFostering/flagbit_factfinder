@@ -6,7 +6,7 @@
  * @category Mage
  * @package FACTFinder_Tracking
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  *
@@ -15,7 +15,7 @@
 <config>
     <modules>
         <FACTFinder_Tracking>
-            <version>4.1.12</version>
+            <version>4.1.2</version>
         </FACTFinder_Tracking>
     </modules>
     <global>

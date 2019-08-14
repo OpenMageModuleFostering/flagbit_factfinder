@@ -5,7 +5,7 @@
  * @category Mage
  * @package FACTFinder_Suggest
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  *
@@ -17,7 +17,7 @@
  * @category Mage
  * @package FACTFinder_Suggest
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  */
@@ -51,12 +51,6 @@ class FACTFinder_Suggest_Model_Observer
      */
     public function triggerImportAfterExport($observer)
     {
-        $file = $observer->getFile();
-
-        if (!$file instanceof FACTFinder_Core_Model_File || !$file->isValid()) {
-            return;
-        }
-
         $storeId = $observer->getStoreId();
         $helper = Mage::helper('factfinder_suggest');
         if ($helper->shouldTriggerImport($storeId)) {

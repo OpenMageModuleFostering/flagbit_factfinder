@@ -4,7 +4,7 @@
  * @category Mage
  * @package FACTFinder_Tracking
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  *
@@ -40,14 +40,14 @@ var FactfinderTracking = Class.create({
 
             if(element.readAttribute('href')) {
                 var match = this.regex.exec(element.readAttribute('href'));
-                if(match && match[1] && !this.irrelevantLink(element.readAttribute('class'))) {
+                if(match && match[1]) {
                     return this.prepareElement(element, match[1], 'click');
                 }
             }
 
             if(element.readAttribute('onclick')) {
                 var match = this.regex.exec(element.readAttribute('onclick'));
-                if(match && match[1] && !this.irrelevantLink(element.readAttribute('class'))) {
+                if(match && match[1]) {
                     return this.prepareElement(element, match[1], 'click');
                 }
             }
@@ -69,13 +69,6 @@ var FactfinderTracking = Class.create({
             method: 'post',
             parameters: data
         });
-        return false;
-    },
-    
-    irrelevantLink: function (classAttribute) {
-        if (classAttribute != null && (classAttribute.indexOf('link-wishlist') != -1 || classAttribute.indexOf('link-compare') != -1)) {
-            return true;
-        }
         return false;
     }
 });

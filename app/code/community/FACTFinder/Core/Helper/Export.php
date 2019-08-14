@@ -5,7 +5,7 @@
  * @category Mage
  * @package magento
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG
  * @license https://opensource.org/licenses/MIT The MIT License (MIT)
  * @link http://www.flagbit.de
  */
@@ -24,12 +24,6 @@ class FACTFinder_Core_Helper_Export extends Mage_Core_Helper_Abstract
     const IMPORT_DELAY_KEY     = 'factfinder_import_delay';
     const ARCHIVE_PATTERN      = 'store_%s_export.zip';
     const EXPORT_TRIGGER_DELAY = 90;
-    const EXPORT_IMAGE_SIZE    = 'suggest_image_size';
-    const EXPORT_IMAGE_TYPE    = 'suggest_image_type';
-    const EXPORT_URLS_IMAGES   = 'urls';
-    const OUT_OF_STOCK_PRODUCTS = 'out_of_stock_products';
-    const VALIDATION_DISABLED  = 'disabled_validation';
-    const EXPLICIT_ATTRIBUTES  = 'explicit_attributes';
 
     /**
      * @var int
@@ -229,27 +223,20 @@ class FACTFinder_Core_Helper_Export extends Mage_Core_Helper_Abstract
     public function archiveFiles($storeId)
     {
         $dir = $this->getExportDirectory();
+
         $archiveName = sprintf(self::ARCHIVE_PATTERN, $storeId);
-        $archivePath = $dir . DS . $archiveName;
 
         $zip = new ZipArchive();
-        $zip->open($archivePath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+        $zip->open($dir . DS . $archiveName, ZIPARCHIVE::CREATE | ZIPARCHIVE::OVERWRITE);
         foreach ($this->getExportTypes() as $type) {
-            $model = Mage::getModel('factfinder/export_type_' . $type);
+            $model = Mage::getModel('factfinder/export_' . $type);
             $filename = $model->getFilenameForStore($storeId);
-
-            if ($this->isValidationEnabled($storeId) && !$this->_validateFile($model, $dir, $filename)) {
-                $zip->close();
-                @unlink($archivePath);
-                break;
-            }
-
             $zip->addFile($dir . DS . $filename, $filename);
         }
 
         $zip->close();
 
-        return $archivePath;
+        return $dir . DS . $archiveName;
     }
 
 
@@ -281,129 +268,6 @@ class FACTFinder_Core_Helper_Export extends Mage_Core_Helper_Abstract
         Mage::register($typeKey, $delay);
 
         return $delay;
-    }
-
-
-    /**
-     * Get width of product images exported
-     *
-     * @param int $storeId
-     *
-     * @return null|string
-     */
-    public function getExportImageWidth($storeId = 0)
-    {
-        $width = $this->getExportConfigValue(self::EXPORT_IMAGE_SIZE, $storeId);
-        $width = explode('x', $width);
-        $width = array_shift($width);
-
-        return $width;
-    }
-
-
-    /**
-     * Get height of images exported. If not set use width
-     *
-     * @param int $storeId
-     *
-     * @return null|string
-     */
-    public function getExportImageHeight($storeId = 0)
-    {
-        $height = $this->getExportConfigValue(self::EXPORT_IMAGE_SIZE, $storeId);
-        $height = explode('x', $height);
-        $height = array_pop($height);
-
-        return $height ? $height : $this->getExportImageWidth();
-    }
-
-
-    /**
-     * Get type of product image to export
-     *
-     * @param int $storeId
-     *
-     * @return null|string
-     */
-    public function getExportImageType($storeId = 0)
-    {
-        return $this->getExportConfigValue(self::EXPORT_IMAGE_TYPE, $storeId);
-    }
-
-
-    /**
-     * Check if images should be exported
-     *
-     * @param int $storeId
-     *
-     * @return null|string
-     */
-    public function shouldExportImages($storeId = 0)
-    {
-        return $this->getExportConfigValue(self::EXPORT_URLS_IMAGES, $storeId);
-    }
-
-
-    /**
-     * Check if out of stock products should be exported
-     *
-     * @param int $storeId
-     *
-     * @return null|string
-     */
-    public function shouldExportOutOfStock($storeId = 0)
-    {
-        return $this->getExportConfigValue(self::OUT_OF_STOCK_PRODUCTS, $storeId);
-    }
-
-
-    /**
-     * Check if file is valid
-     *
-     * @param FACTFinder_Core_Model_Export_Type_Interface $model
-     * @param string $dir
-     * @param string $filename
-     *
-     * @return bool
-     */
-    protected function _validateFile($model, $dir, $filename)
-    {
-        if (!defined($model::FILE_VALIDATOR)) {
-            return true;
-        }
-
-        /** @var FACTFinder_Core_Model_File $file */
-        $file = Mage::getModel('factfinder/file');
-        $file->open($dir, $filename);
-        $file->setValidator(Mage::getModel($model::FILE_VALIDATOR));
-
-        return $file->isValid();
-    }
-
-
-    /**
-     * Check if file validation for store is enabled
-     *
-     * @param int $storeId
-     *
-     * @return null|string
-     */
-    public function isValidationEnabled($storeId = 0)
-    {
-        return !$this->getExportConfigValue(self::VALIDATION_DISABLED, $storeId);
-    }
-
-
-    /**
-     * Check if explicit attribute type configuration should be used
-     *
-     * @param int $storeId
-     *
-     * @return bool
-     */
-    public function useExplicitAttributes($storeId = 0)
-    {
-        return (bool) $this->getExportConfigValue(self::EXPLICIT_ATTRIBUTES, $storeId);
     }
 
 

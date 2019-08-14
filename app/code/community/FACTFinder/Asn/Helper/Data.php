@@ -22,10 +22,6 @@
  */
 class FACTFinder_Asn_Helper_Data extends Mage_Core_Helper_Abstract
 {
-    /**
-     * A sequence that is unlikely to occur in an URL
-     */
-    const QUERY_PLACEHOLDER = 'XWPZVYTAQOJ';
 
 
     /**
@@ -40,19 +36,19 @@ class FACTFinder_Asn_Helper_Data extends Mage_Core_Helper_Abstract
         $queryParams = array();
 
         //conserve url encoded spaces, since parse_str replaces them with underscores
-        $url = str_replace('%20', self::QUERY_PLACEHOLDER, $url);
+        $url = str_replace('%20', 'XXXXXXXXXX', $url);
 
         $parseUrl = parse_url($url);
         if (isset($parseUrl['query'])) {
-             $queryParams = $this->parseStr($parseUrl['query']);
+            parse_str($parseUrl['query'], $queryParams);
         }
 
         // recover spaces
         // we use not encoded values since they will be encoded with Mage::getUrl()
         $result = array();
         foreach ($queryParams as $key => $value) {
-            $key = str_replace(self::QUERY_PLACEHOLDER, ' ', $key);
-            $value = str_replace(self::QUERY_PLACEHOLDER, ' ', $value);
+            $key = str_replace('XXXXXXXXXX', ' ', $key);
+            $value = str_replace('XXXXXXXXXX', ' ', $value);
             $result[$key] = $value;
         }
 
@@ -91,30 +87,6 @@ class FACTFinder_Asn_Helper_Data extends Mage_Core_Helper_Abstract
         $url = str_replace(array('?&', '&&'), array('?', '&'), $url);
 
         return $url;
-    }
-
-
-    /**
-     * Does practically the same as parse_str
-     * but does NOT underscore parameter names
-     *
-     * @param string $string
-     *
-     * @return array
-     *
-     */
-    public function parseStr($string)
-    {
-        $result = array();
-        $query = trim($string, '?&');
-        $query = explode('&', $query);
-
-        foreach ($query as $item) {
-            $item = explode('=', $item);
-            $result[urldecode(array_shift($item))] = urldecode(array_shift($item));
-        }
-
-        return $result;
     }
 
 

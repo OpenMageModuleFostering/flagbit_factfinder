@@ -5,7 +5,7 @@
  * @category Mage
  * @package FACTFinder_Tracking
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  *
@@ -17,7 +17,7 @@
  * @category Mage
  * @package FACTFinder_Tracking
  * @author Flagbit Magento Team <magento@flagbit.de>
- * @copyright Copyright (c) 2017 Flagbit GmbH & Co. KG
+ * @copyright Copyright (c) 2016 Flagbit GmbH & Co. KG
  * @license https://opensource.org/licenses/MIT  The MIT License (MIT)
  * @link http://www.flagbit.de
  */
@@ -55,14 +55,6 @@ class FACTFinder_Tracking_Block_Click extends FACTFinder_Tracking_Block_Abstract
             'origPos'  => $product->getOriginalPosition() ? $product->getOriginalPosition() : $product->getPosition(),
             'title'    => $product->getName()
         );
-
-        if ($product->getCampaign() !== null) {
-            $data['campaign'] = $product->getCampaign();
-        }
-        
-        if ($product->getInstoreAds() !== null) {
-            $data['instoreAds'] = $product->getInstoreAds();
-        }
 
         return $data;
 

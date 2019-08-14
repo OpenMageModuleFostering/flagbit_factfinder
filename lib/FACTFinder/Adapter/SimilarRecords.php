@@ -3,7 +3,7 @@ namespace FACTFinder\Adapter;
 
 use FACTFinder\Loader as FF;
 
-class SimilarRecords extends ConfigurableResponse
+class SimilarRecords extends AbstractAdapter
 {
     /**
      * @var FACTFinder\Util\LoggerInterface
@@ -20,6 +20,18 @@ class SimilarRecords extends ConfigurableResponse
      * @var FACTFinder\Data\Result
      */
     private $similarRecords;
+
+    /**
+     * @var bool
+     */
+    private $attributesUpToDate = false;
+    private $recordsUpToDate = false;
+
+    /**
+     * @var bool
+     */
+    private $idsOnly = false;
+
 
     public function __construct(
         $loggerClass,
@@ -62,7 +74,7 @@ class SimilarRecords extends ConfigurableResponse
         }
         // Make sure that the records are fetched again. In principle, we only
         // have to do this when recordCount increases.
-        $this->upToDate = false;
+        $this->recordsUpToDate = false;
     }
 
     /**
@@ -74,7 +86,24 @@ class SimilarRecords extends ConfigurableResponse
     {
         $parameters = $this->request->getParameters();
         $parameters['id'] = $productID;
-        $this->upToDate = false;
+        $this->attributesUpToDate = false;
+        $this->recordsUpToDate = false;
+    }
+
+    /**
+     * Set this to true to only retrieve the IDs of similar products instead
+     * of full Record objects.
+     * @param $idsOnly bool
+     */
+    public function setIDsOnly($idsOnly)
+    {
+        // Reset the similar records, if more detail is wanted than before
+        if($this->idsOnly && !$idsOnly)
+            $this->recordsUpToDate = false;
+
+        $this->idsOnly = $idsOnly;
+        $parameters = $this->request->getParameters();
+        $parameters['idsOnly'] = $idsOnly ? 'true' : 'false';
     }
 
     /**
@@ -88,10 +117,10 @@ class SimilarRecords extends ConfigurableResponse
     public function getSimilarAttributes()
     {
         if (is_null($this->similarAttributes)
-            || !$this->upToDate
+            || !$this->attributesUpToDate
         ) {
             $this->similarAttributes = $this->createSimilarAttributes();
-            $this->upToDate = true;
+            $this->attributesUpToDate = true;
         }
 
         return $this->similarAttributes;
@@ -132,11 +161,11 @@ class SimilarRecords extends ConfigurableResponse
     public function getSimilarRecords()
     {
         if (is_null($this->similarRecords)
-            || !$this->upToDate
+            || !$this->recordsUpToDate
         ) {
             $this->request->resetLoaded();
             $this->similarRecords = $this->createSimilarRecords();
-            $this->upToDate = true;
+            $this->recordsUpToDate = true;
         }
 
         return $this->similarRecords;
@@ -160,7 +189,10 @@ class SimilarRecords extends ConfigurableResponse
             {
                 foreach($jsonData['records'] as $recordData)
                 {
-                    $records[] = $this->createRecord($recordData, $position++);
+                    if ($this->idsOnly)
+                        $records[] = $this->createSparseRecord($recordData);
+                    else
+                        $records[] = $this->createRecord($recordData, $position++);
                 }
             }
         }
@@ -170,6 +202,14 @@ class SimilarRecords extends ConfigurableResponse
             $records,
             null,
             count($records)
+        );
+    }
+
+    private function createSparseRecord($recordData)
+    {
+        return FF::getInstance(
+            'Data\Record',
+            (string)$recordData['id']
         );
     }
 

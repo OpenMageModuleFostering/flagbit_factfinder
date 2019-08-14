@@ -104,7 +104,6 @@ class FACTFinder_Recommendation_Model_Observer
                 'find_in_set(`e`.`' . $idFieldName . '`, ?)',
                 implode(',', $recommendations)
             ));
-            $select->reset(Zend_Db_Select::ORDER); // ensure sort order is only determined by FF
             $select->order($order);
         } else {
             // do not load anything
@@ -158,12 +157,6 @@ class FACTFinder_Recommendation_Model_Observer
      */
     public function triggerImportAfterExport($observer)
     {
-        $file = $observer->getFile();
-
-        if (!$file instanceof FACTFinder_Core_Model_File || !$file->isValid()) {
-            return;
-        }
-
         $storeId = $observer->getStoreId();
         $helper = Mage::helper('factfinder_recommendation');
         if ($helper->shouldTriggerImport($storeId)) {
