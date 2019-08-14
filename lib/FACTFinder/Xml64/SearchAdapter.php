@@ -1,11 +1,4 @@
 <?php
-/**
- * FACT-Finder PHP Framework
- *
- * @category  Library
- * @package   FACTFinder\Xml64
- * @copyright Copyright (c) 2012 Omikron Data Quality GmbH (www.omikron.net)
- */
 
 /**
  * search adapter using the xml interface. expects a xml formatted string from the data-provider
@@ -17,6 +10,7 @@
 class FACTFinder_Xml64_SearchAdapter extends FACTFinder_Xml65_SearchAdapter
 {
     /**
+     * {@inheritdoc}
      * the parameter for the xml result changed in FACT-Finder 6.5, so here it is set different
      */
     protected function init()
@@ -26,7 +20,8 @@ class FACTFinder_Xml64_SearchAdapter extends FACTFinder_Xml65_SearchAdapter
     }
 
     /**
-     * until version 6.4 of FACT-Finder there are no slider elements
+     * {@inheritdoc}
+     * until versio 6.4 of FACT-Finder there are no slider elements
      *
      * @return FACTFinder_Asn
      **/
@@ -78,6 +73,7 @@ class FACTFinder_Xml64_SearchAdapter extends FACTFinder_Xml65_SearchAdapter
     }
 
     /**
+     * {@inheritdoc}
      * until version 6.4 of FACT-Finder, the products per page options are not delivered, so this method creates an
      * artificial products per page options array, but uses the current set productsPerPage value from the result
      *

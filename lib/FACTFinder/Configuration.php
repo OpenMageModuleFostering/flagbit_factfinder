@@ -1,11 +1,4 @@
 <?php
-/**
- * FACT-Finder PHP Framework
- *
- * @category  Library
- * @package   FACTFinder\Common
- * @copyright Copyright (c) 2012 Omikron Data Quality GmbH (www.omikron.net)
- */
 
 /**
  * this class implements the FACTFinder configuration interface and uses the Zend_Config class. so it's like a decorator
@@ -42,7 +35,7 @@ class FACTFinder_Configuration implements FACTFinder_Abstract_Configuration
 
     /**
      * @return boolean
-	 * @deprecated
+     * @deprecated
      */
     public function isDebugEnabled() {
         return $this->zendConfig->debug == 'true';
@@ -57,24 +50,24 @@ class FACTFinder_Configuration implements FACTFinder_Abstract_Configuration
     }
 
     /**
-	 * @deprecated because of wrong spelling. use "getRequestProtocol()" instead
+     * @deprecated because of wrong spelling. use "getRequestProtocol()" instead
      * @return string
      */
     public function getRequestProtokoll() {
         return $this->zendConfig->search->protokoll;
     }
 
-	/**
+    /**
      * @return string
      */
     public function getRequestProtocol() {
         $protocol = $this->zendConfig->search->protocol;
 
-		// legacy code for older configurations
-		if (empty($protocol)) {
-			$protocol = $this->getRequestProtokoll();
-		}
-		return $protocol;
+        // legacy code for older configurations
+        if (empty($protocol)) {
+            $protocol = $this->getRequestProtokoll();
+        }
+        return $protocol;
     }
 
     /**
@@ -174,7 +167,7 @@ class FACTFinder_Configuration implements FACTFinder_Abstract_Configuration
     }
 
     /**
-     * get mappings for the webpage
+     * {@inheritdoc}
      *
      * @return array
      */
@@ -200,7 +193,7 @@ class FACTFinder_Configuration implements FACTFinder_Abstract_Configuration
     }
 
     /**
-     * get mappings for the server request
+     * {@inheritdoc}
      *
      * @return array
      */
@@ -226,7 +219,7 @@ class FACTFinder_Configuration implements FACTFinder_Abstract_Configuration
     }
 
     /**
-     * get ignored parameters for the webpage request
+     * {@inheritdoc}
      *
      * @return array with string as key and boolean true as value for each of them
      */
@@ -257,7 +250,7 @@ class FACTFinder_Configuration implements FACTFinder_Abstract_Configuration
     }
 
     /**
-     * get ignored parameters for the server request
+     * {@inheritdoc}
      *
      * @return array with string as key and boolean true as value for each of them
      */
@@ -288,7 +281,7 @@ class FACTFinder_Configuration implements FACTFinder_Abstract_Configuration
     }
 
     /**
-     * get required parameters for the webpage request
+     * {@inheritdoc}
      *
      * @return array string to string map (param-name as array-key; default value as array-value)
      */
@@ -314,7 +307,7 @@ class FACTFinder_Configuration implements FACTFinder_Abstract_Configuration
     }
 
     /**
-     * get required paramters for the server request
+     * {@inheritdoc}
      *
      * @return array string to string map (param-name as array-key; default value as array-value)
      */
@@ -341,7 +334,7 @@ class FACTFinder_Configuration implements FACTFinder_Abstract_Configuration
 
 
     /**
-     * get encoding for the webpage
+     * {@inheritdoc}
      *
      * @return string
      */
@@ -350,7 +343,7 @@ class FACTFinder_Configuration implements FACTFinder_Abstract_Configuration
     }
 
     /**
-     * get encoding for the webpage url
+     * {@inheritdoc}
      *
      * @return string
      */
@@ -359,7 +352,7 @@ class FACTFinder_Configuration implements FACTFinder_Abstract_Configuration
     }
 
     /**
-     * get server url encoding
+     * {@inheritdoc}
      *
      * @return string
      */

@@ -1,11 +1,4 @@
 <?php
-/**
- * FACT-Finder PHP Framework
- *
- * @category  Library
- * @package   FACTFinder\Xml65
- * @copyright Copyright (c) 2012 Omikron Data Quality GmbH (www.omikron.net)
- */
 
 /**
  * tag cloud adapter using the xml interface
@@ -17,11 +10,13 @@
 class FACTFinder_Xml65_TagCloudAdapter extends FACTFinder_Abstract_TagCloudAdapter
 {
     /**
+     * {@inheritdoc}
+     *
      * @return void
      **/
     public function init()
     {
-		$this->log->info("Initializing new tag cloud adapter.");
+        $this->log->info("Initializing new tag cloud adapter.");
         $this->getDataProvider()->setType('WhatsHot.ff');
         $this->getDataProvider()->setParam('do', 'getTagCloud');
     }
@@ -39,6 +34,8 @@ class FACTFinder_Xml65_TagCloudAdapter extends FACTFinder_Abstract_TagCloudAdapt
     }
 
     /**
+     * {@inheritdoc}
+     *
      * @return array $tagCloud list of FACTFinder_TagQuery items
      **/
     protected function createTagCloud()

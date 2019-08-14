@@ -1,11 +1,4 @@
 <?php
-/**
- * FACT-Finder PHP Framework
- *
- * @category  Library
- * @package   FACTFinder\Xml66
- * @copyright Copyright (c) 2012 Omikron Data Quality GmbH (www.omikron.net)
- */
 
 /**
  * adapter for the factfinder recommendation engine, working with the XML interface of FF6.6

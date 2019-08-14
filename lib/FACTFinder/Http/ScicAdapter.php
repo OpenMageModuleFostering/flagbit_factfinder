@@ -1,11 +1,4 @@
 <?php
-/**
- * FACT-Finder PHP Framework
- *
- * @category  Library
- * @package   FACTFinder\Http
- * @copyright Copyright (c) 2012 Omikron Data Quality GmbH (www.omikron.net)
- */
 
 /**
  * http scic adapater
@@ -17,15 +10,15 @@
 class FACTFinder_Http_ScicAdapter extends FACTFinder_Abstract_ScicAdapter
 {
     /**
-     * init
+     * {@inheritdoc}
      */
     protected function init() {
-		$this->log->info("Initializing new SCIC adapter.");
+        $this->log->info("Initializing new SCIC adapter.");
         $this->getDataProvider()->setType('SCIC.ff');
     }
 
     /**
-     * send tracking
+     * {@inheritdoc}
      *
      * @return boolean $success
      */

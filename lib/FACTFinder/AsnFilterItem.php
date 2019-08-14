@@ -1,11 +1,4 @@
 <?php
-/**
- * FACT-Finder PHP Framework
- *
- * @category  Library
- * @package   FACTFinder\Common
- * @copyright Copyright (c) 2012 Omikron Data Quality GmbH (www.omikron.net)
- */
 
 /**
  * represents an filterable item from the after search navigation
@@ -29,9 +22,9 @@ class FACTFinder_AsnFilterItem extends FACTFinder_Item
         $this->field = strval($field);
     }
 
-	public function getType() {
-		return 'item';
-	}
+    public function getType() {
+        return 'item';
+    }
 
     /**
      * @return String
@@ -67,6 +60,6 @@ class FACTFinder_AsnFilterItem extends FACTFinder_Item
      * @return boolean
      */
     public function hasPreviewImage() {
-        return strlen($this->previewImage) > 0;
+        return !empty($this->previewImage);
     }
 }

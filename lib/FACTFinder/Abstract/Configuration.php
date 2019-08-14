@@ -1,15 +1,9 @@
 <?php
-/**
- * FACT-Finder PHP Framework
- *
- * @category  Library
- * @package   FACTFinder\Abstract
- * @copyright Copyright (c) 2012 Omikron Data Quality GmbH (www.omikron.net)
- */
 
 /**
  * interface to access the needed configuration values
  *
+ * @category FACTFinderLib
  * @package FACTFinder\Abstract
  */
 interface FACTFinder_Abstract_Configuration
@@ -28,7 +22,7 @@ interface FACTFinder_Abstract_Configuration
     /**
      * @return string
      */
-	function getRequestProtocol();
+    function getRequestProtocol();
 
     /**
      * @return string

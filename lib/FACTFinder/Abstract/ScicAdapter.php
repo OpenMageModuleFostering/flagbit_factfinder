@@ -1,11 +1,4 @@
 <?php
-/**
- * FACT-Finder PHP Framework
- *
- * @category  Library
- * @package   FACTFinder\Abstract
- * @copyright Copyright (c) 2012 Omikron Data Quality GmbH (www.omikron.net)
- */
 
 /**
  * abstract adapter for the shopping cart information collector tracking
@@ -35,9 +28,9 @@ abstract class FACTFinder_Abstract_ScicAdapter extends FACTFinder_Abstract_Adapt
     public function doTrackingFromRequest($sid = null)
     {
         $params = $this->getParamsParser()->getServerRequestParams();
-        if (strlen($sid) > 0) {
+        if (!empty($sid)) {
             $params['sid'] = $sid;
-        } else if (!isset($params['sid']) || strlen($params['sid']) == 0) {
+        } else if (empty($params['sid'])) {
             $params['sid'] = session_id();
         }
         $this->getDataProvider()->setParams($params);
@@ -62,7 +55,7 @@ abstract class FACTFinder_Abstract_ScicAdapter extends FACTFinder_Abstract_Adapt
     public function trackClick($id, $sid = null, $query, $pos, $origPos = -1, $page = 1, $simi = 100.0, $title = '',
         $pageSize = 12, $origPageSize = -1)
     {
-        if (strlen($sid) == 0) $sid  = session_id();
+        if (empty($sid)) $sid  = session_id();
         if ($origPos == -1) $origPos = $pos;
         if ($origPageSize == -1) $origPageSize = $pageSize;
 
@@ -95,7 +88,7 @@ abstract class FACTFinder_Abstract_ScicAdapter extends FACTFinder_Abstract_Adapt
      */
     public function trackCart($id, $sid = null, $count = 1, $price = null, $userid = null)
     {
-        if (strlen($sid) == 0) $sid  = session_id();
+        if (empty($sid)) $sid  = session_id();
         $params = array(
                 'id' => $id,
                 'sid' => $sid,
@@ -103,8 +96,8 @@ abstract class FACTFinder_Abstract_ScicAdapter extends FACTFinder_Abstract_Adapt
                 'event' => 'cart'
             );
 
-        if (strlen($price) > 0) $params['price'] = $price;
-        if (strlen($userid) > 0) $params['userid'] = $userid;
+        if (!empty($price)) $params['price'] = $price;
+        if (!empty($userid)) $params['userid'] = $userid;
 
         $this->getDataProvider()->setParams($params);
         return $this->applyTracking();
@@ -121,7 +114,7 @@ abstract class FACTFinder_Abstract_ScicAdapter extends FACTFinder_Abstract_Adapt
      */
     public function trackCheckout($id, $sid = null, $count = 1, $price = null, $userid = null)
     {
-        if (strlen($sid) == 0) $sid  = session_id();
+        if (empty($sid)) $sid  = session_id();
         $params = array(
                 'id' => $id,
                 'sid' => $sid,
@@ -129,8 +122,8 @@ abstract class FACTFinder_Abstract_ScicAdapter extends FACTFinder_Abstract_Adapt
                 'event' => 'checkout'
             );
 
-        if (strlen($price) > 0) $params['price'] = $price;
-        if (strlen($userid) > 0) $params['userid'] = $userid;
+        if (!empty($price)) $params['price'] = $price;
+        if (!empty($userid)) $params['userid'] = $userid;
 
         $this->getDataProvider()->setParams($params);
         return $this->applyTracking();
@@ -146,7 +139,7 @@ abstract class FACTFinder_Abstract_ScicAdapter extends FACTFinder_Abstract_Adapt
      */
     public function trackRecommendationClick($id, $sid = null, $mainId)
     {
-        if (strlen($sid) == 0) $sid  = session_id();
+        if (empty($sid)) $sid  = session_id();
         $params = array(
                 'id' => $id,
                 'sid' => $sid,
